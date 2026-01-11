@@ -293,7 +293,7 @@ if st.session_state.hint_letters:
 # ================= LETTER GRID (MOBILE FRIENDLY) =================
 st.session_state.is_mobile = st.get_option("browser.gatherUsageStats") is not None and st.container
 
-st.markdown("""
+st.markdown('''
 <style>
 /* Letter grid container */
 .letter-grid {
@@ -311,7 +311,7 @@ st.markdown("""
 }
 </style>
 
-            """)
+            ''')
 
 st.markdown("### ⌨️ Choose a Letter")
 
