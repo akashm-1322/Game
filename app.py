@@ -1,5 +1,5 @@
 import streamlit as st
-import string, os, time, random
+import string, os, random
 from ai_word_selector import get_ai_word
 from auth import login, signup, update_score, get_user_stats, get_leaderboard
 
@@ -52,19 +52,14 @@ st.markdown("""
     margin-bottom: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
-button[kind="primary"] {
-    width: 100%;
-}
-@media (max-width: 600px) {
-    h2 { font-size: 22px; }
-}
+button[kind="primary"] { width: 100%; }
+@media (max-width: 600px) { h2 { font-size:22px; } }
 </style>
 """, unsafe_allow_html=True)
 
 # ================= AUTH =================
 if not st.session_state.user:
     st.title("🔐 AI Hangman")
-
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
     with tab1:
@@ -86,15 +81,10 @@ if not st.session_state.user:
                 st.success("Account created! Login now.")
             else:
                 st.error("Username exists")
-
     st.stop()
 
 # ================= USER STATS =================
-stats = get_user_stats(st.session_state.user) or {
-    "best_score": 0,
-    "wins": 0,
-    "games_played": 0
-}
+stats = get_user_stats(st.session_state.user) or {"best_score":0,"wins":0,"games_played":0}
 
 # ================= SIDEBAR LEADERBOARD =================
 st.sidebar.title("🏆 Global Rankings")
@@ -102,29 +92,18 @@ raw = get_leaderboard()
 clean = []
 
 for r in raw:
-    username = r.get("username", "unknown")
-    best = int(r.get("best_score", 0) or 0)
-    wins = int(r.get("wins", 0) or 0)
-    games = int(r.get("games_played", 0) or 0)
-    avg = round(wins / games, 2) if games > 0 else 0.0
-    clean.append({
-        "username": username,
-        "best_score": best,
-        "wins": wins,
-        "games_played": games,
-        "avg_win_rate": avg
-    })
+    username = r.get("username","unknown")
+    best = int(r.get("best_score",0) or 0)
+    wins = int(r.get("wins",0) or 0)
+    games = int(r.get("games_played",0) or 0)
+    avg = round(wins/games,2) if games>0 else 0.0
+    clean.append({"username":username,"best_score":best,"wins":wins,"games_played":games,"avg_win_rate":avg})
 
-ranked = sorted(
-    clean,
-    key=lambda x: (x["best_score"], x["avg_win_rate"], x["games_played"]),
-    reverse=True
-)
+ranked = sorted(clean, key=lambda x: (x["best_score"], x["avg_win_rate"], x["games_played"]), reverse=True)
 
-def get_badge(rank):
-    return ["🥇 Gold", "🥈 Silver", "🥉 Bronze"][rank-1] if rank <= 3 else "🎯 Player"
+def get_badge(rank): return ["🥇 Gold","🥈 Silver","🥉 Bronze"][rank-1] if rank<=3 else "🎯 Player"
 
-for i, u in enumerate(ranked[:10], 1):
+for i,u in enumerate(ranked[:10],1):
     st.sidebar.markdown(f"""
     <div class="sidebar-card">
         <b>{get_badge(i)} #{i} — {u['username']}</b><br>
@@ -133,24 +112,13 @@ for i, u in enumerate(ranked[:10], 1):
     """, unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
-st.sidebar.markdown(f"""
-### 👤 {st.session_state.user}
-🏆 Best: {stats['best_score']}  
-🎯 Wins: {stats['wins']}  
-🎮 Games: {stats['games_played']}
-""")
+st.sidebar.markdown(f"### 👤 {st.session_state.user}\n🏆 Best: {stats['best_score']}  \n🎯 Wins: {stats['wins']}  \n🎮 Games: {stats['games_played']}")
 
 # ================= START MENU =================
 if not st.session_state.started:
     st.title("🧠 AI Hangman")
-
-    st.session_state.difficulty = st.radio(
-        "Choose Difficulty",
-        ["easy", "medium", "hard"],
-        horizontal=True
-    )
-
-    st.session_state.max_hints = 2 if st.session_state.difficulty == "hard" else 1
+    st.session_state.difficulty = st.radio("Choose Difficulty", ["easy","medium","hard"], horizontal=True)
+    st.session_state.max_hints = 2 if st.session_state.difficulty=="hard" else 1
 
     if st.button("▶ Start Game", use_container_width=True):
         st.session_state.word = get_ai_word(st.session_state.difficulty)
@@ -165,23 +133,16 @@ if not st.session_state.started:
 
 # ================= GAME UI =================
 badge_class = f"badge-{st.session_state.difficulty}"
-st.markdown(
-    f"<div style='text-align:center'>"
-    f"<span class='badge {badge_class}'>🎚 {st.session_state.difficulty.upper()}</span>"
-    f"</div>",
-    unsafe_allow_html=True
-)
+st.markdown(f"<div style='text-align:center'><span class='badge {badge_class}'>🎚 {st.session_state.difficulty.upper()}</span></div>", unsafe_allow_html=True)
 
-img = os.path.join(ASSETS_PATH, f"hangman{st.session_state.wrong}.png")
-if os.path.exists(img):
-    st.image(img, width=220)
+img = os.path.join(ASSETS_PATH,f"hangman{st.session_state.wrong}.png")
+if os.path.exists(img): st.image(img,width=220)
 
-st.progress(st.session_state.wrong / MAX_TRIES)
+# ---------------- PROGRESS ----------------
+progress_value = min((st.session_state.wrong + st.session_state.hint_used)/MAX_TRIES,1.0)
+st.progress(progress_value)
 
-display = " ".join(
-    c.upper() if c in st.session_state.guessed else "_"
-    for c in st.session_state.word
-)
+display = " ".join(c.upper() if c in st.session_state.guessed else "_" for c in st.session_state.word)
 st.markdown(f"<h2 style='text-align:center'>{display}</h2>", unsafe_allow_html=True)
 
 # ================= HINT SYSTEM =================
@@ -190,25 +151,26 @@ if st.session_state.hint_used < st.session_state.max_hints:
         correct = list(set(st.session_state.word) - st.session_state.guessed)
         wrongs = list(set(string.ascii_lowercase) - set(st.session_state.word))
         if correct:
-            hint_letters = random.sample(correct, 1) + random.sample(wrongs, 2)
+            hint_letters = random.sample(correct,1) + random.sample(wrongs,2)
             random.shuffle(hint_letters)
             st.session_state.hint_letters = hint_letters
             st.session_state.hint_used += 1
-            st.toast("Hint used! Score -1", icon="⚠️")
+            st.session_state.wrong += 1  # hint reduces chance
+            st.toast("Hint used! Score -1 and chance lost", icon="⚠️")
 
 if st.session_state.hint_letters:
     st.markdown("### 🔍 Choose the correct letter")
     cols = st.columns(len(st.session_state.hint_letters))
-    for i, l in enumerate(st.session_state.hint_letters):
+    for i,l in enumerate(st.session_state.hint_letters):
         if cols[i].button(l.upper(), key=f"hint_{l}_{st.session_state.hint_used}"):
             st.session_state.guessed.add(l)
-            st.session_state.hint_letters = []
+            st.session_state.hint_letters=[]
             st.rerun()
 
 # ================= LETTER GRID =================
 cols = st.columns(7)
-for i, l in enumerate(string.ascii_lowercase):
-    if cols[i % 7].button(l.upper(), disabled=l in st.session_state.guessed, key=f"letter_{l}"):
+for i,l in enumerate(string.ascii_lowercase):
+    if cols[i%7].button(l.upper(), disabled=l in st.session_state.guessed, key=f"letter_{l}"):
         st.session_state.guessed.add(l)
         if l not in st.session_state.word:
             st.session_state.wrong += 1
@@ -219,13 +181,17 @@ for i, l in enumerate(string.ascii_lowercase):
 
 # ================= RESULT =================
 won = all(c in st.session_state.guessed for c in st.session_state.word)
+final_score = max(0, MAX_TRIES - st.session_state.wrong - st.session_state.hint_used)
 
+# Last attempt hint rule
+if st.session_state.wrong >= MAX_TRIES:
+    if st.session_state.hint_used>0: final_score=0
+    won = False
+
+# Display result
 if won:
-    st.success("🎉 YOU WON!")
-    st.balloons()
-    final_score = st.session_state.wrong + st.session_state.hint_used
-    st.markdown(
-        f"""
+    st.success("🎉 YOU WON!"); st.balloons()
+    st.markdown(f"""
         <div style="
             text-align:center;
             font-size:20px;
@@ -239,26 +205,19 @@ if won:
             💡 Hints Used: {st.session_state.hint_used}<br>
             ❌ Wrong Attempts: {st.session_state.wrong}
         </div>
-        """,
-        unsafe_allow_html=True
-    )
-
+        """, unsafe_allow_html=True)
 elif st.session_state.wrong >= MAX_TRIES:
     st.error("💀 YOU LOST!")
     st.info(f"Word was **{st.session_state.word.upper()}**")
 
+# Update score only once
 if (won or st.session_state.wrong >= MAX_TRIES) and not st.session_state.score_updated:
-    update_score(
-        st.session_state.user,
-        won,
-        st.session_state.wrong + st.session_state.hint_used,
-        st.session_state.difficulty
-    )
+    update_score(st.session_state.user, won, final_score, st.session_state.difficulty)
     st.session_state.score_updated = True
 
 # ================= RESTART =================
 if st.button("🔄 Restart Game", use_container_width=True, key="restart_game"):
-    st.session_state.started = False
-    st.session_state.hint_letters = []
-    st.session_state.score_updated = False
+    st.session_state.started=False
+    st.session_state.hint_letters=[]
+    st.session_state.score_updated=False
     st.rerun()
