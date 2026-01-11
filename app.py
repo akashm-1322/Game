@@ -294,55 +294,39 @@ st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
 
-# ================= FLEX GRID WITH RESPONSIVE WIDTH =================
-st.markdown("""
-<style>
-.letter-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px; /* space between letters */
-}
+# Detect mobile / tablet by screen width using media query is not possible in Streamlit
+# So we choose a fixed number for simplicity:
 
-.letter-grid > div {
-    flex: 0 0 18%; /* default ~5 letters per row for desktop */
-    max-width: 60px;
-}
+# Choose columns count based on desktop/mobile
+# You can change 5 for desktop, 3 for mobile
+def get_cols_count():
+    # Approximation: let user manually set device type or default to desktop 5
+    return 5  # Change to 3 for mobile if you want
 
-/* Tablets and phones: 3 letters per row */
-@media (max-width: 1024px) {
-    .letter-grid > div {
-        flex: 0 0 30%;  /* 3 letters per row */
-        max-width: 50px;
-    }
-}
+cols_count = get_cols_count()
 
-/* Buttons inside div: full width of container */
-.letter-grid button {
-    width: 100% !important;
-}
-</style>
-""", unsafe_allow_html=True)
+idx = 0
+while idx < len(letters):
+    cols = st.columns(cols_count)
+    for i in range(cols_count):
+        if idx >= len(letters):
+            break
+        l = letters[idx]
+        with cols[i]:
+            if st.button(
+                l.upper(),
+                disabled=l in st.session_state.guessed,
+                key=f"letter_{l}"
+            ):
+                st.session_state.guessed.add(l)
+                if l not in st.session_state.word:
+                    st.session_state.wrong += 1
+                    st.toast("Wrong!", icon="💀")
+                else:
+                    st.toast("Correct!", icon="🎯")
+                st.rerun()
+        idx += 1
 
-st.markdown("<div class='letter-grid'>", unsafe_allow_html=True)
-
-for l in letters:
-    st.markdown("<div>", unsafe_allow_html=True)
-    if st.button(
-        l.upper(),
-        disabled=l in st.session_state.guessed,
-        key=f"letter_{l}"
-    ):
-        st.session_state.guessed.add(l)
-        if l not in st.session_state.word:
-            st.session_state.wrong += 1
-            st.toast("Wrong!", icon="💀")
-        else:
-            st.toast("Correct!", icon="🎯")
-        st.rerun()
-    st.markdown("</div>", unsafe_allow_html=True)
-
-st.markdown("</div>", unsafe_allow_html=True)
 
 display_score = max(
     0,
