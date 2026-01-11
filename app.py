@@ -293,33 +293,45 @@ if st.session_state.hint_letters:
 # ================= LETTER GRID (MOBILE FRIENDLY) =================
 st.session_state.is_mobile = st.get_option("browser.gatherUsageStats") is not None and st.container
 
+st.markdown("""
+<style>
+/* Letter grid container */
+.letter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;  /* spacing between letters */
+}
+
+/* Each letter button */
+.letter-grid button {
+    min-width: 48px;
+    max-width: 60px;
+    flex: 1 0 auto;
+}
+</style>
+
+            """)
+
 st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
 
-is_mobile = st.session_state.get("is_mobile", False)
-letters_per_row = 3 if is_mobile else 5   # 3 per row on mobile, 5 on desktop
-
-# Split letters into chunks of letters_per_row
-for i in range(0, len(letters), letters_per_row):
-    chunk = letters[i:i+letters_per_row]
-    cols = st.columns(len(chunk))
-    for j, l in enumerate(chunk):
-        with cols[j]:
-            st.markdown("<div class='letter-btn'>", unsafe_allow_html=True)
-            if st.button(
-                l.upper(),
-                disabled=l in st.session_state.guessed,
-                key=f"letter_{l}"
-            ):
-                st.session_state.guessed.add(l)
-                if l not in st.session_state.word:
-                    st.session_state.wrong += 1
-                    st.toast("Wrong!", icon="💀")
-                else:
-                    st.toast("Correct!", icon="🎯")
-                st.rerun()
-            st.markdown("</div>", unsafe_allow_html=True)
+st.markdown("<div class='letter-grid'>", unsafe_allow_html=True)
+for l in letters:
+    if st.button(
+        l.upper(),
+        disabled=l in st.session_state.guessed,
+        key=f"letter_{l}"
+    ):
+        st.session_state.guessed.add(l)
+        if l not in st.session_state.word:
+            st.session_state.wrong += 1
+            st.toast("Wrong!", icon="💀")
+        else:
+            st.toast("Correct!", icon="🎯")
+        st.rerun()
+st.markdown("</div>", unsafe_allow_html=True)
 
 
 
