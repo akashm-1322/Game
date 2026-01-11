@@ -298,20 +298,14 @@ st.markdown("### ⌨️ Choose a Letter")
 letters = list(string.ascii_lowercase)
 
 is_mobile = st.session_state.get("is_mobile", False)
+letters_per_row = 3 if is_mobile else 5   # 3 per row on mobile, 5 on desktop
 
-if is_mobile:
-    ROWS = [5, 5, 5, 5, 6]
-else:
-    ROWS = [3, 3, 3, 3, 3, 3, 3 , 3, 2]
-
-idx = 0
-for row_size in ROWS:
-    cols = st.columns(row_size)
-    for c in cols:
-        if idx >= len(letters):
-            break
-        l = letters[idx]
-        with c:
+# Split letters into chunks of letters_per_row
+for i in range(0, len(letters), letters_per_row):
+    chunk = letters[i:i+letters_per_row]
+    cols = st.columns(len(chunk))
+    for j, l in enumerate(chunk):
+        with cols[j]:
             st.markdown("<div class='letter-btn'>", unsafe_allow_html=True)
             if st.button(
                 l.upper(),
@@ -326,7 +320,9 @@ for row_size in ROWS:
                     st.toast("Correct!", icon="🎯")
                 st.rerun()
             st.markdown("</div>", unsafe_allow_html=True)
-        idx += 1
+
+
+
 
 display_score = max(
     0,
