@@ -160,7 +160,7 @@ img {
 
 # ================= AUTH =================
 if not st.session_state.user:
-    st.title("🔐 AI Hangman")
+    st.title("🔐 Ash's Hangman")
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
     with tab1:
