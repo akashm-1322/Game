@@ -301,7 +301,7 @@ letters = list(string.ascii_lowercase)
 # You can change 5 for desktop, 3 for mobile
 def get_cols_count():
     # Approximation: let user manually set device type or default to desktop 5
-    return 5  # Change to 3 for mobile if you want
+    return 3 # Change to 3 for mobile if you want
 
 cols_count = get_cols_count()
 
