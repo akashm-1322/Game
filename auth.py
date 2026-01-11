@@ -4,6 +4,18 @@ import hashlib
 def hash_password(password):
     return hashlib.sha256(password.encode()).hexdigest()
 
+def get_user_stats(username):
+    res = supabase.table("users").select("*").eq("username", username).execute()
+    if res.data:
+        user = res.data[0]
+        return {
+            "games_played": user["games_played"],
+            "wins": user["wins"],
+            "best_score": user["best_score"]
+        }
+    return {"games_played": 0, "wins": 0, "best_score": 0}
+
+
 # ---------------- SIGNUP ----------------
 def signup(username, password):
     # Check if username exists
@@ -33,11 +45,12 @@ def login(username, password):
     return None
 
 # ---------------- UPDATE SCORE ----------------
-def update_score(username, won, wrong, difficulty):
+def update_score(username, won, wrong, hints_used, difficulty):
     if not won:
         score = 0
     else:
-        base_score = max(0, 6 - wrong)
+        # ---- Base score calculation ----
+        base_score = max(0, 6 - wrong - hints_used)
 
         # ---- Difficulty multipliers ----
         if difficulty == "hard":
@@ -53,23 +66,13 @@ def update_score(username, won, wrong, difficulty):
         .eq("username", username) \
         .execute().data[0]
 
+    # ---- Update DB ----
     supabase.table("users").update({
         "games_played": user["games_played"] + 1,
         "wins": user["wins"] + (1 if won else 0),
         "best_score": max(user["best_score"], score)
     }).eq("username", username).execute()
 
-# ---------------- USER STATS ----------------
-def get_user_stats(username):
-    res = supabase.table("users").select("*").eq("username", username).execute()
-    if res.data:
-        user = res.data[0]
-        return {
-            "games_played": user["games_played"],
-            "wins": user["wins"],
-            "best_score": user["best_score"]
-        }
-    return {"games_played": 0, "wins": 0, "best_score": 0}
 
 # ---------------- LEADERBOARD ----------------
 def get_leaderboard():
