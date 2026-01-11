@@ -299,7 +299,10 @@ letters = list(string.ascii_lowercase)
 
 is_mobile = st.session_state.get("is_mobile", False)
 
-ROWS = [4, 4, 4, 4, 4, 4, 2] if is_mobile else [5, 5, 5, 5, 6]
+if is_mobile:
+    ROWS = [3, 3, 3, 3, 3, 3, 3 , 3, 2]
+else:
+    ROWS = [5, 5, 5, 5, 6]
 
 idx = 0
 for row_size in ROWS:
