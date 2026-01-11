@@ -68,10 +68,10 @@ if not st.session_state.user:
     tab1, tab2 = st.tabs(["Login", "Sign Up"])
 
     with tab1:
-        u = st.text_input("Username")
-        p = st.text_input("Password", type="password")
+        u_login = st.text_input("Username", key="login_user")
+        p_login = st.text_input("Password", type="password", key="login_pass")
         if st.button("Login"):
-            user = login(u, p)
+            user = login(u_login, p_login)
             if user:
                 st.session_state.user = user["username"]
                 st.rerun()
@@ -79,10 +79,10 @@ if not st.session_state.user:
                 st.error("Invalid credentials")
 
     with tab2:
-        u = st.text_input("New Username")
-        p = st.text_input("New Password", type="password")
+        u_signup = st.text_input("New Username", key="signup_user")
+        p_signup = st.text_input("New Password", type="password", key="signup_pass")
         if st.button("Create Account"):
-            if signup(u, p):
+            if signup(u_signup, p_signup):
                 st.success("Account created! Login now.")
             else:
                 st.error("Username exists")
@@ -98,15 +98,26 @@ stats = get_user_stats(st.session_state.user) or {
 
 # ================= SIDEBAR LEADERBOARD =================
 st.sidebar.title("🏆 Global Rankings")
-
 raw = get_leaderboard()
+clean = []
+
+for r in raw:
+    username = r.get("username", "unknown")
+    best = int(r.get("best_score", 0) or 0)
+    wins = int(r.get("wins", 0) or 0)
+    games = int(r.get("games_played", 0) or 0)
+    avg = round(wins / games, 2) if games > 0 else 0.0
+    clean.append({
+        "username": username,
+        "best_score": best,
+        "wins": wins,
+        "games_played": games,
+        "avg_win_rate": avg
+    })
+
 ranked = sorted(
-    raw,
-    key=lambda x: (
-        x.get("best_score", 0),
-        (x.get("wins", 0) / x.get("games_played", 1)),
-        x.get("games_played", 0)
-    ),
+    clean,
+    key=lambda x: (x["best_score"], x["avg_win_rate"], x["games_played"]),
     reverse=True
 )
 
@@ -114,11 +125,10 @@ def get_badge(rank):
     return ["🥇 Gold", "🥈 Silver", "🥉 Bronze"][rank-1] if rank <= 3 else "🎯 Player"
 
 for i, u in enumerate(ranked[:10], 1):
-    avg = round(u["wins"]/u["games_played"], 2) if u["games_played"] else 0
     st.sidebar.markdown(f"""
     <div class="sidebar-card">
         <b>{get_badge(i)} #{i} — {u['username']}</b><br>
-        🏆 {u['best_score']} | 📈 {avg} | 🎮 {u['games_played']}
+        🏆 {u['best_score']} | 📈 {u['avg_win_rate']} | 🎮 {u['games_played']}
     </div>
     """, unsafe_allow_html=True)
 
@@ -151,7 +161,6 @@ if not st.session_state.started:
         st.session_state.started = True
         st.session_state.score_updated = False
         st.rerun()
-
     st.stop()
 
 # ================= GAME UI =================
@@ -177,14 +186,12 @@ st.markdown(f"<h2 style='text-align:center'>{display}</h2>", unsafe_allow_html=T
 
 # ================= HINT SYSTEM =================
 if st.session_state.hint_used < st.session_state.max_hints:
-    if st.button("💡 Get Hint"):
+    if st.button("💡 Get Hint", key=f"hint_button_{st.session_state.hint_used}"):
         correct = list(set(st.session_state.word) - st.session_state.guessed)
         wrongs = list(set(string.ascii_lowercase) - set(st.session_state.word))
-
         if correct:
             hint_letters = random.sample(correct, 1) + random.sample(wrongs, 2)
             random.shuffle(hint_letters)
-
             st.session_state.hint_letters = hint_letters
             st.session_state.hint_used += 1
             st.toast("Hint used! Score -1", icon="⚠️")
@@ -193,19 +200,15 @@ if st.session_state.hint_letters:
     st.markdown("### 🔍 Choose the correct letter")
     cols = st.columns(len(st.session_state.hint_letters))
     for i, l in enumerate(st.session_state.hint_letters):
-        if cols[i].button(
-        l.upper(),
-        key=f"hint_{l}_{st.session_state.hint_used}"
-        ):
+        if cols[i].button(l.upper(), key=f"hint_{l}_{st.session_state.hint_used}"):
             st.session_state.guessed.add(l)
             st.session_state.hint_letters = []
             st.rerun()
 
-
 # ================= LETTER GRID =================
 cols = st.columns(7)
 for i, l in enumerate(string.ascii_lowercase):
-    if cols[i % 7].button(l.upper(),disabled=l in st.session_state.guessed,key=f"letter_{l}"):
+    if cols[i % 7].button(l.upper(), disabled=l in st.session_state.guessed, key=f"letter_{l}"):
         st.session_state.guessed.add(l)
         if l not in st.session_state.word:
             st.session_state.wrong += 1
@@ -221,26 +224,24 @@ if won:
     st.success("🎉 YOU WON!")
     st.balloons()
     final_score = st.session_state.wrong + st.session_state.hint_used
-
     st.markdown(
-    f"""
-    <div style="
-        text-align:center;
-        font-size:20px;
-        padding:12px;
-        background:#ecfdf5;
-        border-radius:14px;
-        margin-top:10px;
-        box-shadow:0 6px 16px rgba(0,0,0,0.12);
-    ">
-        🏆 <b>Your Score:</b> {final_score}<br>
-        💡 Hints Used: {st.session_state.hint_used}<br>
-        ❌ Wrong Attempts: {st.session_state.wrong}
-    </div>
-    """,
-    unsafe_allow_html=True
+        f"""
+        <div style="
+            text-align:center;
+            font-size:20px;
+            padding:12px;
+            background:#ecfdf5;
+            border-radius:14px;
+            margin-top:10px;
+            box-shadow:0 6px 16px rgba(0,0,0,0.12);
+        ">
+            🏆 <b>Your Score:</b> {final_score}<br>
+            💡 Hints Used: {st.session_state.hint_used}<br>
+            ❌ Wrong Attempts: {st.session_state.wrong}
+        </div>
+        """,
+        unsafe_allow_html=True
     )
-
 
 elif st.session_state.wrong >= MAX_TRIES:
     st.error("💀 YOU LOST!")
@@ -256,6 +257,8 @@ if (won or st.session_state.wrong >= MAX_TRIES) and not st.session_state.score_u
     st.session_state.score_updated = True
 
 # ================= RESTART =================
-if st.button("🔄 Restart Game", use_container_width=True):
+if st.button("🔄 Restart Game", use_container_width=True, key="restart_game"):
     st.session_state.started = False
+    st.session_state.hint_letters = []
+    st.session_state.score_updated = False
     st.rerun()
