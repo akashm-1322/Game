@@ -115,9 +115,9 @@ img {
 /* ---------- MOBILE ---------- */
 @media (max-width: 600px) {
 
+    /* Sidebar hidden by default, toggle via >> */
     section[data-testid="stSidebar"] {
-        min-width: 100%;
-        max-width: 100%;
+        width: 260px !important;
     }
 
     .block-container {
@@ -139,6 +139,7 @@ img {
         font-size: 15px;
     }
 }
+
 
 /* ---------- TABLET ---------- */
 @media (min-width: 601px) and (max-width: 1024px) {
@@ -188,7 +189,7 @@ stats = get_user_stats(st.session_state.user) or {"best_score":0,"wins":0,"games
 
 # ================= START MENU =================
 if not st.session_state.started:
-    st.title("🧠 AI Hangman")
+    st.title("🧠 Ash's Hangman")
 
     st.session_state.difficulty = st.radio(
         "Choose Difficulty",
@@ -290,10 +291,15 @@ if st.session_state.hint_letters:
             st.rerun()
 
 # ================= LETTER GRID (MOBILE FRIENDLY) =================
+st.session_state.is_mobile = st.get_option("browser.gatherUsageStats") is not None and st.container
+
 st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
-ROWS = [5, 5, 5, 5, 6]   # Perfect wrap for mobile
+
+is_mobile = st.session_state.get("is_mobile", False)
+
+ROWS = [4, 4, 4, 4, 4, 4, 2] if is_mobile else [5, 5, 5, 5, 6]
 
 idx = 0
 for row_size in ROWS:
