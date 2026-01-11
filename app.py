@@ -39,7 +39,7 @@ st.markdown("""
     padding: 8px 18px;
     border-radius: 999px;
     font-weight: 700;
-    color: white;
+    color: black;
 }
 .badge-easy { background: linear-gradient(135deg,#2ecc71,#27ae60); }
 .badge-medium { background: linear-gradient(135deg,#f1c40f,#f39c12); }
@@ -49,6 +49,7 @@ st.markdown("""
     background: rgba(255,255,255,0.95);
     border-radius: 16px;
     padding: 12px;
+    color: black;
     margin-bottom: 10px;
     box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
