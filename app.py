@@ -294,12 +294,40 @@ st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
 
-# Use flex container
-st.markdown("<div style='display:flex; flex-wrap:wrap; justify-content:center;'>", unsafe_allow_html=True)
+# ================= FLEX GRID WITH RESPONSIVE WIDTH =================
+st.markdown("""
+<style>
+.letter-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px; /* space between letters */
+}
+
+.letter-grid > div {
+    flex: 0 0 18%; /* default ~5 letters per row for desktop */
+    max-width: 60px;
+}
+
+/* Tablets and phones: 3 letters per row */
+@media (max-width: 1024px) {
+    .letter-grid > div {
+        flex: 0 0 30%;  /* 3 letters per row */
+        max-width: 50px;
+    }
+}
+
+/* Buttons inside div: full width of container */
+.letter-grid button {
+    width: 100% !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("<div class='letter-grid'>", unsafe_allow_html=True)
 
 for l in letters:
-    # Each button in a small container div
-    st.markdown(f"<div style='margin:3px; width:60px;'>", unsafe_allow_html=True)
+    st.markdown("<div>", unsafe_allow_html=True)
     if st.button(
         l.upper(),
         disabled=l in st.session_state.guessed,
@@ -315,7 +343,6 @@ for l in letters:
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("</div>", unsafe_allow_html=True)
-
 
 display_score = max(
     0,
