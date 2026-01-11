@@ -290,35 +290,16 @@ if st.session_state.hint_letters:
             st.session_state.hint_letters=[]
             st.rerun()
 
-# ================= LETTER GRID (MOBILE FRIENDLY) =================
-st.session_state.is_mobile = st.get_option("browser.gatherUsageStats") is not None and st.container
-
-st.markdown('''
-<style>
-/* Letter grid container */
-.letter-grid {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;  /* spacing between letters */
-}
-
-/* Each letter button */
-.letter-grid button {
-    min-width: 48px;
-    max-width: 60px;
-    flex: 1 0 auto;
-}
-</style>
-
-            ''')
-
 st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
 
-st.markdown("<div class='letter-grid'>", unsafe_allow_html=True)
+# Use flex container
+st.markdown("<div style='display:flex; flex-wrap:wrap; justify-content:center;'>", unsafe_allow_html=True)
+
 for l in letters:
+    # Each button in a small container div
+    st.markdown(f"<div style='margin:3px; width:60px;'>", unsafe_allow_html=True)
     if st.button(
         l.upper(),
         disabled=l in st.session_state.guessed,
@@ -331,9 +312,9 @@ for l in letters:
         else:
             st.toast("Correct!", icon="🎯")
         st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
 st.markdown("</div>", unsafe_allow_html=True)
-
-
 
 
 display_score = max(
