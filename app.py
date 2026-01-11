@@ -5,7 +5,7 @@ from auth import login, signup, update_score, get_user_stats, get_leaderboard
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
-    page_title="AI Hangman",
+    page_title="Ash's Hangman",
     page_icon="🎮",
     layout="centered"
 )
@@ -300,9 +300,9 @@ letters = list(string.ascii_lowercase)
 is_mobile = st.session_state.get("is_mobile", False)
 
 if is_mobile:
-    ROWS = [3, 3, 3, 3, 3, 3, 3 , 3, 2]
-else:
     ROWS = [5, 5, 5, 5, 6]
+else:
+    ROWS = [3, 3, 3, 3, 3, 3, 3 , 3, 2]
 
 idx = 0
 for row_size in ROWS:
