@@ -2,6 +2,8 @@ import streamlit as st
 import string, os, random
 from ai_word_selector import get_ai_word
 from auth import login, signup, update_score, get_user_stats, get_leaderboard
+import streamlit.components.v1 as components
+
 
 # ---------------- PAGE CONFIG ----------------
 st.set_page_config(
@@ -290,33 +292,42 @@ if st.session_state.hint_letters:
             st.session_state.hint_letters=[]
             st.rerun()
 
+# ================= LETTER GRID =================
+import streamlit as st
+import string
+
+# Initialize session state for testing if not present
+if "guessed" not in st.session_state:
+    st.session_state.guessed = set()
+if "word" not in st.session_state:
+    st.session_state.word = "apple"
+if "wrong" not in st.session_state:
+    st.session_state.wrong = 0
+
 st.markdown("### ⌨️ Choose a Letter")
 
 letters = list(string.ascii_lowercase)
 
-# Detect mobile / tablet by screen width using media query is not possible in Streamlit
-# So we choose a fixed number for simplicity:
+# On mobile, 3-4 columns is the maximum comfortable width for buttons.
+# We use a smaller gap to prevent stacking.
+cols_count = 4 
 
-# Choose columns count based on desktop/mobile
-# You can change 5 for desktop, 3 for mobile
-def get_cols_count():
-    # Approximation: let user manually set device type or default to desktop 5
-    return 3 # Change to 3 for mobile if you want
-
-cols_count = get_cols_count()
-
-idx = 0
-while idx < len(letters):
+# Logic to render the grid
+for i in range(0, len(letters), cols_count):
+    # Create a container for each row
     cols = st.columns(cols_count)
-    for i in range(cols_count):
-        if idx >= len(letters):
-            break
-        l = letters[idx]
-        with cols[i]:
+    
+    # Slice the letters for this specific row
+    row_letters = letters[i : i + cols_count]
+    
+    for j, l in enumerate(row_letters):
+        with cols[j]:
+            # use_container_width=True makes the buttons fill the column evenly
             if st.button(
                 l.upper(),
                 disabled=l in st.session_state.guessed,
-                key=f"letter_{l}"
+                key=f"btn_{l}",
+                use_container_width=True  
             ):
                 st.session_state.guessed.add(l)
                 if l not in st.session_state.word:
@@ -325,9 +336,9 @@ while idx < len(letters):
                 else:
                     st.toast("Correct!", icon="🎯")
                 st.rerun()
-        idx += 1
 
-
+                
+# ================= SCORE CALCULATION =================
 display_score = max(
     0,
     MAX_TRIES - st.session_state.wrong - st.session_state.hint_used
@@ -379,3 +390,27 @@ if st.button("🔄 Restart Game"):
     st.session_state.hint_letters = []
     st.session_state.score_updated = False
     st.rerun()
+
+# ================= FOOTER =================
+st.markdown("""
+<style>
+.app-footer {
+  margin-top: 40px;
+  padding: 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+}
+
+@media (max-width: 768px) {
+  .app-footer {
+    font-size: 12px;
+  }
+}
+</style>
+
+<div class="app-footer">
+  🎮 Ash's Hangman • Built with Streamlit • © 2026
+</div>
+""", unsafe_allow_html=True)
